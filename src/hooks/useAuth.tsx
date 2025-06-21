@@ -5,15 +5,23 @@ import { useToast } from '@/hooks/use-toast';
 
 interface User {
   id: string;
+  name: string;
   email: string;
-  first_name: string;
-  last_name: string;
-  is_active: boolean;
+  role: string;
   tenant_id: string;
+  created_at: string;
+}
+
+interface Tenant {
+  id: string;
+  name: string;
+  domain?: string;
+  created_at: string;
 }
 
 interface AuthContextType {
   user: User | null;
+  tenant: Tenant | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
@@ -23,10 +31,10 @@ interface AuthContextType {
 }
 
 interface RegisterData {
+  name: string;
   email: string;
   password: string;
-  first_name: string;
-  last_name: string;
+  role?: string;
   tenant_name?: string;
 }
 
@@ -40,6 +48,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [tenant, setTenant] = useState<Tenant | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -52,30 +61,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       formData.append('username', email);
       formData.append('password', password);
 
-      const response = await fetch('https://sopora-backend.onrender.com/auth/login', {
-        method: 'POST',
-        body: formData,
-      });
+      const response = await apiClient.postForm<LoginResponse>('/api/v1/auth/login', formData);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Login failed');
+      if (response.error) {
+        throw new Error(response.error);
       }
 
-      const data: LoginResponse = await response.json();
-      localStorage.setItem('auth_token', data.access_token);
-      setUser(data.user);
+      if (response.data) {
+        localStorage.setItem('auth_token', response.data.access_token);
+        localStorage.setItem('user_data', JSON.stringify(response.data.user));
+        setUser(response.data.user);
+        
+        // Fetch tenant data
+        await fetchTenant(response.data.user.tenant_id);
+        
+        toast({
+          title: "Welcome back!",
+          description: "Successfully logged in to SOPora",
+        });
+        
+        return true;
+      }
       
-      toast({
-        title: "Success",
-        description: "Logged in successfully",
-      });
-      
-      return true;
+      return false;
     } catch (error) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : 'Login failed',
+        title: "Login Failed",
+        description: error instanceof Error ? error.message : 'Invalid credentials',
         variant: "destructive",
       });
       return false;
@@ -87,29 +99,51 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (userData: RegisterData): Promise<boolean> => {
     setIsLoading(true);
     try {
-      const response = await apiClient.post<LoginResponse>('/auth/register', userData);
+      // First create tenant if tenant_name is provided
+      let tenantId = null;
+      if (userData.tenant_name) {
+        const tenantResponse = await apiClient.post<Tenant>('/api/v1/tenants/', {
+          name: userData.tenant_name,
+        });
+        
+        if (tenantResponse.error) {
+          throw new Error(tenantResponse.error);
+        }
+        
+        if (tenantResponse.data) {
+          tenantId = tenantResponse.data.id;
+          setTenant(tenantResponse.data);
+        }
+      }
+
+      // Create user
+      const userPayload = {
+        name: userData.name,
+        email: userData.email,
+        password: userData.password,
+        role: userData.role || 'user',
+      };
+
+      const endpoint = tenantId 
+        ? `/api/v1/users/?tenant_id=${tenantId}`
+        : '/api/v1/users/';
+        
+      const response = await apiClient.post<User>(endpoint, userPayload);
       
       if (response.error) {
         throw new Error(response.error);
       }
 
       if (response.data) {
-        localStorage.setItem('auth_token', response.data.access_token);
-        setUser(response.data.user);
-        
-        toast({
-          title: "Success",
-          description: "Account created successfully",
-        });
-        
-        return true;
+        // Auto-login after successful registration
+        return await login(userData.email, userData.password);
       }
       
       return false;
     } catch (error) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : 'Registration failed',
+        title: "Registration Failed",
+        description: error instanceof Error ? error.message : 'Failed to create account',
         variant: "destructive",
       });
       return false;
@@ -118,38 +152,51 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const fetchTenant = async (tenantId: string) => {
+    try {
+      const response = await apiClient.get<Tenant>(`/api/v1/tenants/${tenantId}`);
+      if (response.data) {
+        setTenant(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch tenant:', error);
+    }
+  };
+
   const logout = async () => {
     try {
-      await apiClient.post('/auth/logout');
+      await apiClient.post('/api/v1/auth/logout');
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
       localStorage.removeItem('auth_token');
+      localStorage.removeItem('user_data');
       setUser(null);
+      setTenant(null);
       toast({
-        title: "Success",
-        description: "Logged out successfully",
+        title: "Goodbye!",
+        description: "Successfully logged out",
       });
     }
   };
 
   const refreshUser = async () => {
     const token = localStorage.getItem('auth_token');
-    if (!token) {
+    const userData = localStorage.getItem('user_data');
+    
+    if (!token || !userData) {
       setIsLoading(false);
       return;
     }
 
     try {
-      const response = await apiClient.get<User>('/users/me');
-      if (response.data) {
-        setUser(response.data);
-      } else {
-        localStorage.removeItem('auth_token');
-      }
+      const user = JSON.parse(userData);
+      setUser(user);
+      await fetchTenant(user.tenant_id);
     } catch (error) {
       console.error('Failed to refresh user:', error);
       localStorage.removeItem('auth_token');
+      localStorage.removeItem('user_data');
     } finally {
       setIsLoading(false);
     }
@@ -161,6 +208,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const value: AuthContextType = {
     user,
+    tenant,
     isLoading,
     isAuthenticated,
     login,

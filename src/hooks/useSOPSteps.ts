@@ -6,19 +6,15 @@ import { SOPStep } from './useSops';
 
 export interface CreateSOPStepData {
   sop_id: string;
-  step_number: number;
-  title: string;
-  description: string;
-  media_url?: string;
-  estimated_duration?: number;
+  step_order: number;
+  content_type: string;
+  content_data: string;
 }
 
 export interface UpdateSOPStepData {
-  title?: string;
-  description?: string;
-  media_url?: string;
-  estimated_duration?: number;
-  step_number?: number;
+  step_order?: number;
+  content_type?: string;
+  content_data?: string;
 }
 
 export const useSOPSteps = (sopId?: string) => {
@@ -32,7 +28,7 @@ export const useSOPSteps = (sopId?: string) => {
   } = useQuery({
     queryKey: ['sop-steps', sopId],
     queryFn: async () => {
-      const response = await apiClient.get<SOPStep[]>(`/sop-steps/?sop_id=${sopId}`);
+      const response = await apiClient.get<SOPStep[]>(`/api/v1/sop-steps/?sop_id=${sopId}`);
       if (response.error) {
         throw new Error(response.error);
       }
@@ -43,7 +39,7 @@ export const useSOPSteps = (sopId?: string) => {
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateSOPStepData) => {
-      const response = await apiClient.post<SOPStep>('/sop-steps/', data);
+      const response = await apiClient.post<SOPStep>('/api/v1/sop-steps/', data);
       if (response.error) {
         throw new Error(response.error);
       }
@@ -52,7 +48,7 @@ export const useSOPSteps = (sopId?: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sop-steps', sopId] });
       toast({
-        title: "Success",
+        title: "Success!",
         description: "Step created successfully",
       });
     },
@@ -67,7 +63,7 @@ export const useSOPSteps = (sopId?: string) => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateSOPStepData }) => {
-      const response = await apiClient.patch<SOPStep>(`/sop-steps/${id}`, data);
+      const response = await apiClient.patch<SOPStep>(`/api/v1/sop-steps/${id}`, data);
       if (response.error) {
         throw new Error(response.error);
       }
@@ -76,7 +72,7 @@ export const useSOPSteps = (sopId?: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sop-steps', sopId] });
       toast({
-        title: "Success",
+        title: "Success!",
         description: "Step updated successfully",
       });
     },
@@ -91,7 +87,7 @@ export const useSOPSteps = (sopId?: string) => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiClient.delete(`/sop-steps/${id}`);
+      const response = await apiClient.delete(`/api/v1/sop-steps/${id}`);
       if (response.error) {
         throw new Error(response.error);
       }
@@ -100,7 +96,7 @@ export const useSOPSteps = (sopId?: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sop-steps', sopId] });
       toast({
-        title: "Success",
+        title: "Success!",
         description: "Step deleted successfully",
       });
     },

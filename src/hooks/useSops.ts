@@ -1,5 +1,4 @@
 
-import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
@@ -7,34 +6,34 @@ import { useToast } from '@/hooks/use-toast';
 export interface SOP {
   id: string;
   title: string;
-  description?: string;
+  description: string;
   version: number;
-  is_published: boolean;
-  created_at: string;
-  updated_at: string;
   tenant_id: string;
   created_by: string;
+  created_at: string;
+  updated_at: string | null;
 }
 
 export interface SOPStep {
   id: string;
   sop_id: string;
-  step_number: number;
-  title: string;
-  description: string;
-  media_url?: string;
-  estimated_duration?: number;
+  step_order: number;
+  content_type: string;
+  content_data: string;
+  tenant_id: string;
 }
 
 export interface CreateSOPData {
   title: string;
   description?: string;
+  version?: number;
+  created_by: string;
 }
 
 export interface UpdateSOPData {
   title?: string;
   description?: string;
-  is_published?: boolean;
+  version?: number;
 }
 
 export const useSops = () => {
@@ -49,7 +48,7 @@ export const useSops = () => {
   } = useQuery({
     queryKey: ['sops'],
     queryFn: async () => {
-      const response = await apiClient.get<SOP[]>('/sops/');
+      const response = await apiClient.get<SOP[]>('/api/v1/sops/');
       if (response.error) {
         throw new Error(response.error);
       }
@@ -59,7 +58,7 @@ export const useSops = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateSOPData) => {
-      const response = await apiClient.post<SOP>('/sops/', data);
+      const response = await apiClient.post<SOP>('/api/v1/sops/', data);
       if (response.error) {
         throw new Error(response.error);
       }
@@ -68,7 +67,7 @@ export const useSops = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sops'] });
       toast({
-        title: "Success",
+        title: "Success!",
         description: "SOP created successfully",
       });
     },
@@ -83,7 +82,7 @@ export const useSops = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateSOPData }) => {
-      const response = await apiClient.patch<SOP>(`/sops/${id}`, data);
+      const response = await apiClient.patch<SOP>(`/api/v1/sops/${id}`, data);
       if (response.error) {
         throw new Error(response.error);
       }
@@ -92,7 +91,7 @@ export const useSops = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sops'] });
       toast({
-        title: "Success",
+        title: "Success!",
         description: "SOP updated successfully",
       });
     },
@@ -107,7 +106,7 @@ export const useSops = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiClient.delete(`/sops/${id}`);
+      const response = await apiClient.delete(`/api/v1/sops/${id}`);
       if (response.error) {
         throw new Error(response.error);
       }
@@ -116,7 +115,7 @@ export const useSops = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sops'] });
       toast({
-        title: "Success",
+        title: "Success!",
         description: "SOP deleted successfully",
       });
     },
@@ -144,8 +143,6 @@ export const useSops = () => {
 };
 
 export const useSOP = (sopId: string) => {
-  const { toast } = useToast();
-
   const {
     data: sop,
     isLoading,
@@ -153,7 +150,7 @@ export const useSOP = (sopId: string) => {
   } = useQuery({
     queryKey: ['sop', sopId],
     queryFn: async () => {
-      const response = await apiClient.get<SOP>(`/sops/${sopId}`);
+      const response = await apiClient.get<SOP>(`/api/v1/sops/${sopId}`);
       if (response.error) {
         throw new Error(response.error);
       }
