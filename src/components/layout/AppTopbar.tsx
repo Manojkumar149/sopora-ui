@@ -1,5 +1,5 @@
 
-import { Bell, User, ChevronDown, LogOut, Settings } from "lucide-react";
+import { Bell, ChevronDown, LogOut, Settings } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -91,7 +91,6 @@ const AppTopbar = () => {
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link to="/profile" className="flex items-center">
-                <User className="w-4 h-4 mr-2" />
                 Profile
               </Link>
             </DropdownMenuItem>
