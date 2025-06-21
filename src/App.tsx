@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { AuthProvider } from "@/hooks/useAuth";
 
 // Pages
 import LandingPage from "./pages/LandingPage";
@@ -31,37 +31,39 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          
-          {/* Protected routes with layout */}
-          <Route path="/" element={<AppLayout />}>
-            <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="sops" element={<SOPListPage />} />
-            <Route path="sops/:sopId/edit" element={<SOPEditorPage />} />
-            <Route path="sops/:sopId" element={<SOPDetailsPage />} />
-            <Route path="assignments" element={<AssignmentsPage />} />
-            <Route path="quizzes" element={<QuizzesPage />} />
-            <Route path="quizzes/:quizId" element={<QuizDetailsPage />} />
-            <Route path="media" element={<MediaPage />} />
-            <Route path="profile" element={<ProfilePage />} />
-            <Route path="notifications" element={<NotificationsPage />} />
-            <Route path="users" element={<UsersPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-          </Route>
-          
-          {/* 404 route */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            
+            {/* Protected routes with layout */}
+            <Route path="/" element={<AppLayout />}>
+              <Route path="dashboard" element={<DashboardPage />} />
+              <Route path="sops" element={<SOPListPage />} />
+              <Route path="sops/:sopId/edit" element={<SOPEditorPage />} />
+              <Route path="sops/:sopId" element={<SOPDetailsPage />} />
+              <Route path="assignments" element={<AssignmentsPage />} />
+              <Route path="quizzes" element={<QuizzesPage />} />
+              <Route path="quizzes/:quizId" element={<QuizDetailsPage />} />
+              <Route path="media" element={<MediaPage />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="users" element={<UsersPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+            </Route>
+            
+            {/* 404 route */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

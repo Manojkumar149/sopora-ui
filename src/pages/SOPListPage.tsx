@@ -1,72 +1,43 @@
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Plus, Search, Filter, Edit, Eye } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { FileText, Plus, Search, Edit, Trash2, Eye } from "lucide-react";
+import { useSops } from "@/hooks/useSops";
 
 const SOPListPage = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const { sops, isLoading, createSOP, deleteSOP, isCreating, isDeleting } = useSops();
 
-  const sops = [
-    {
-      id: "1",
-      title: "Customer Onboarding Process",
-      category: "Sales",
-      status: "Published",
-      lastUpdated: "2024-01-15",
-      assignedUsers: 12,
-      completionRate: "85%"
-    },
-    {
-      id: "2",
-      title: "Quality Control Checklist",
-      category: "Operations",
-      status: "Draft",
-      lastUpdated: "2024-01-14",
-      assignedUsers: 8,
-      completionRate: "92%"
-    },
-    {
-      id: "3",
-      title: "Safety Training Protocol",
-      category: "Safety",
-      status: "Published",
-      lastUpdated: "2024-01-13",
-      assignedUsers: 24,
-      completionRate: "78%"
-    },
-    {
-      id: "4",
-      title: "Emergency Response Procedures",
-      category: "Safety",
-      status: "Published",
-      lastUpdated: "2024-01-12",
-      assignedUsers: 35,
-      completionRate: "96%"
-    }
-  ];
+  const filteredSops = sops.filter(sop =>
+    sop.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    sop.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Published":
-        return "bg-green-100 text-green-800";
-      case "Draft":
-        return "bg-yellow-100 text-yellow-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+  const handleCreateSOP = () => {
+    createSOP({
+      title: "New SOP",
+      description: "This is a new standard operating procedure."
+    });
+  };
+
+  const handleDeleteSOP = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this SOP?")) {
+      deleteSOP(id);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Loading SOPs...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -74,96 +45,123 @@ const SOPListPage = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-[#0D1B2A]">Standard Operating Procedures</h1>
-          <p className="text-gray-600">Manage and organize your SOPs</p>
+          <p className="text-gray-600">Manage and organize your team's SOPs</p>
         </div>
-        <Button asChild className="bg-[#36CFC9] hover:bg-[#36CFC9]/90 text-[#0D1B2A]">
-          <Link to="/sops/new/edit">
-            <Plus className="w-4 h-4 mr-2" />
-            Create New SOP
-          </Link>
+        <Button 
+          onClick={handleCreateSOP}
+          disabled={isCreating}
+          className="bg-[#36CFC9] hover:bg-[#36CFC9]/90 text-[#0D1B2A]"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          {isCreating ? "Creating..." : "Create SOP"}
         </Button>
       </div>
 
-      {/* Filters */}
+      {/* Search and Filters */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-[#0D1B2A]">SOPs Overview</CardTitle>
-              <CardDescription>Browse and manage your organization's procedures</CardDescription>
-            </div>
-            <Button variant="outline">
-              <Filter className="w-4 h-4 mr-2" />
-              Filter
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-4 mb-6">
+        <CardContent className="p-6">
+          <div className="flex items-center space-x-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 placeholder="Search SOPs..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
             </div>
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Table */}
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Assigned Users</TableHead>
-                <TableHead>Completion Rate</TableHead>
-                <TableHead>Last Updated</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sops.map((sop) => (
-                <TableRow key={sop.id}>
-                  <TableCell className="font-medium">
-                    <Link 
-                      to={`/sops/${sop.id}`}
-                      className="text-[#0D1B2A] hover:text-[#36CFC9] transition-colors"
-                    >
-                      {sop.title}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{sop.category}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(sop.status)}>
-                      {sop.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{sop.assignedUsers}</TableCell>
-                  <TableCell>{sop.completionRate}</TableCell>
-                  <TableCell>{sop.lastUpdated}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Button variant="ghost" size="icon" asChild>
-                        <Link to={`/sops/${sop.id}`}>
-                          <Eye className="w-4 h-4" />
-                        </Link>
-                      </Button>
-                      <Button variant="ghost" size="icon" asChild>
-                        <Link to={`/sops/${sop.id}/edit`}>
-                          <Edit className="w-4 h-4" />
-                        </Link>
-                      </Button>
-                    </div>
-                  </TableCell>
+      {/* SOPs Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <FileText className="w-5 h-5 mr-2" />
+            SOPs ({filteredSops.length})
+          </CardTitle>
+          <CardDescription>
+            Manage your standard operating procedures
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {filteredSops.length === 0 ? (
+            <div className="text-center py-8">
+              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No SOPs found</h3>
+              <p className="text-gray-500 mb-4">
+                {searchQuery ? "No SOPs match your search criteria." : "Get started by creating your first SOP."}
+              </p>
+              {!searchQuery && (
+                <Button 
+                  onClick={handleCreateSOP}
+                  disabled={isCreating}
+                  className="bg-[#36CFC9] hover:bg-[#36CFC9]/90 text-[#0D1B2A]"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Your First SOP
+                </Button>
+              )}
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Version</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Last Updated</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredSops.map((sop) => (
+                  <TableRow key={sop.id}>
+                    <TableCell className="font-medium">{sop.title}</TableCell>
+                    <TableCell className="max-w-xs truncate">
+                      {sop.description || "No description"}
+                    </TableCell>
+                    <TableCell>v{sop.version}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={sop.is_published ? "default" : "secondary"}
+                        className={sop.is_published ? "bg-green-100 text-green-800" : ""}
+                      >
+                        {sop.is_published ? "Published" : "Draft"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(sop.updated_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end space-x-2">
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link to={`/sops/${sop.id}`}>
+                            <Eye className="w-4 h-4" />
+                          </Link>
+                        </Button>
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link to={`/sops/${sop.id}/edit`}>
+                            <Edit className="w-4 h-4" />
+                          </Link>
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleDeleteSOP(sop.id)}
+                          disabled={isDeleting}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

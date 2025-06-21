@@ -1,11 +1,26 @@
 
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const LoginPage = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { login, isLoading } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const success = await login(email, password);
+    if (success) {
+      navigate("/dashboard");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0D1B2A] to-[#1B263B] flex items-center justify-center p-6">
       <div className="w-full max-w-md">
@@ -25,39 +40,51 @@ const LoginPage = () => {
               Enter your credentials to access your account
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-white">Email</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="Enter your email"
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-white">Password</Label>
-              <Input 
-                id="password" 
-                type="password" 
-                placeholder="Enter your password"
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-              />
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <Link to="#" className="text-[#36CFC9] hover:underline">
-                Forgot password?
-              </Link>
-            </div>
-            <Button asChild className="w-full bg-[#36CFC9] hover:bg-[#36CFC9]/90 text-[#0D1B2A]">
-              <Link to="/dashboard">Sign In</Link>
-            </Button>
-            <div className="text-center text-sm text-[#E0E1DD]">
-              Don't have an account?{" "}
-              <Link to="/register" className="text-[#36CFC9] hover:underline">
-                Sign up
-              </Link>
-            </div>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-white">Email</Label>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-white">Password</Label>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                  required
+                />
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <Link to="#" className="text-[#36CFC9] hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full bg-[#36CFC9] hover:bg-[#36CFC9]/90 text-[#0D1B2A]"
+                disabled={isLoading}
+              >
+                {isLoading ? "Signing In..." : "Sign In"}
+              </Button>
+              <div className="text-center text-sm text-[#E0E1DD]">
+                Don't have an account?{" "}
+                <Link to="/register" className="text-[#36CFC9] hover:underline">
+                  Sign up
+                </Link>
+              </div>
+            </form>
           </CardContent>
         </Card>
       </div>

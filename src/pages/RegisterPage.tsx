@@ -1,11 +1,38 @@
 
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const RegisterPage = () => {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    first_name: "",
+    last_name: "",
+    tenant_name: "",
+  });
+  const { register, isLoading } = useAuth();
+  const navigate = useNavigate();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const success = await register(formData);
+    if (success) {
+      navigate("/dashboard");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0D1B2A] to-[#1B263B] flex items-center justify-center p-6">
       <div className="w-full max-w-md">
@@ -25,63 +52,88 @@ const RegisterPage = () => {
               Fill in your details to get started
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="orgName" className="text-white">Organization Name</Label>
-              <Input 
-                id="orgName" 
-                type="text" 
-                placeholder="Enter organization name"
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName" className="text-white">First Name</Label>
+                <Label htmlFor="tenant_name" className="text-white">Organization Name</Label>
                 <Input 
-                  id="firstName" 
+                  id="tenant_name" 
+                  name="tenant_name"
                   type="text" 
-                  placeholder="First name"
+                  placeholder="Enter organization name"
+                  value={formData.tenant_name}
+                  onChange={handleChange}
                   className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
                 />
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="first_name" className="text-white">First Name</Label>
+                  <Input 
+                    id="first_name" 
+                    name="first_name"
+                    type="text" 
+                    placeholder="First name"
+                    value={formData.first_name}
+                    onChange={handleChange}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="last_name" className="text-white">Last Name</Label>
+                  <Input 
+                    id="last_name" 
+                    name="last_name"
+                    type="text" 
+                    placeholder="Last name"
+                    value={formData.last_name}
+                    onChange={handleChange}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                    required
+                  />
+                </div>
+              </div>
               <div className="space-y-2">
-                <Label htmlFor="lastName" className="text-white">Last Name</Label>
+                <Label htmlFor="email" className="text-white">Email</Label>
                 <Input 
-                  id="lastName" 
-                  type="text" 
-                  placeholder="Last name"
+                  id="email" 
+                  name="email"
+                  type="email" 
+                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={handleChange}
                   className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                  required
                 />
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-white">Email</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="Enter your email"
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-white">Password</Label>
-              <Input 
-                id="password" 
-                type="password" 
-                placeholder="Create a password"
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-              />
-            </div>
-            <Button asChild className="w-full bg-[#36CFC9] hover:bg-[#36CFC9]/90 text-[#0D1B2A]">
-              <Link to="/dashboard">Create Account</Link>
-            </Button>
-            <div className="text-center text-sm text-[#E0E1DD]">
-              Already have an account?{" "}
-              <Link to="/login" className="text-[#36CFC9] hover:underline">
-                Sign in
-              </Link>
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-white">Password</Label>
+                <Input 
+                  id="password" 
+                  name="password"
+                  type="password" 
+                  placeholder="Create a password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                  required
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full bg-[#36CFC9] hover:bg-[#36CFC9]/90 text-[#0D1B2A]"
+                disabled={isLoading}
+              >
+                {isLoading ? "Creating Account..." : "Create Account"}
+              </Button>
+              <div className="text-center text-sm text-[#E0E1DD]">
+                Already have an account?{" "}
+                <Link to="/login" className="text-[#36CFC9] hover:underline">
+                  Sign in
+                </Link>
+              </div>
+            </form>
           </CardContent>
         </Card>
       </div>
