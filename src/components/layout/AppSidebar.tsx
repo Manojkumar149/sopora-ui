@@ -1,4 +1,3 @@
-
 import { 
   FileText, 
   Users, 
@@ -7,7 +6,7 @@ import {
   User, 
   LayoutDashboard,
   Calendar,
-  Media,
+  Images,
   Folder
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
@@ -47,7 +46,7 @@ const menuItems = [
   {
     title: "Media",
     url: "/media",
-    icon: Media,
+    icon: Images,
   },
   {
     title: "Users",
