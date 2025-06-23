@@ -1,3 +1,4 @@
+
 import { 
   FileText, 
   Users, 
@@ -21,6 +22,7 @@ import {
   SidebarMenuItem,
   SidebarHeader,
 } from "@/components/ui/sidebar";
+import { useDeviceType } from "@/hooks/use-mobile";
 
 const menuItems = [
   {
@@ -72,23 +74,26 @@ const menuItems = [
 
 const AppSidebar = () => {
   const location = useLocation();
+  const { isMobile } = useDeviceType();
 
   return (
-    <Sidebar className="bg-[#0D1B2A] border-r border-[#1B263B]">
-      <SidebarHeader className="p-6">
+    <Sidebar className="bg-gradient-to-b from-[#0D1B2A] via-[#0D1B2A] to-[#1B263B] border-r border-[#1B263B]/50 backdrop-blur-md">
+      <SidebarHeader className={`${isMobile ? 'p-4' : 'p-6'}`}>
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-[#36CFC9] rounded-lg flex items-center justify-center">
-            <span className="text-[#0D1B2A] font-bold text-lg">S</span>
+          <div className="w-10 h-10 bg-gradient-to-br from-[#36CFC9] to-[#FFC857] rounded-xl flex items-center justify-center shadow-lg ring-2 ring-white/10">
+            <span className="text-[#0D1B2A] font-bold text-xl">S</span>
           </div>
-          <div>
-            <h2 className="text-white font-bold text-lg">SOPora</h2>
-            <p className="text-[#415A77] text-sm">Smart SOP Assistant</p>
-          </div>
+          {!isMobile && (
+            <div>
+              <h2 className="text-white font-bold text-xl">SOPora</h2>
+              <p className="text-[#415A77] text-sm font-medium">Smart SOP Assistant</p>
+            </div>
+          )}
         </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[#415A77] uppercase text-xs font-semibold">
+          <SidebarGroupLabel className="text-[#415A77] uppercase text-xs font-bold tracking-wider px-3">
             Main Menu
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -98,11 +103,11 @@ const AppSidebar = () => {
                   <SidebarMenuButton 
                     asChild 
                     isActive={location.pathname === item.url}
-                    className="text-white hover:bg-[#1B263B] data-[active=true]:bg-[#36CFC9] data-[active=true]:text-[#0D1B2A]"
+                    className="text-white/90 hover:bg-gradient-to-r hover:from-[#1B263B] hover:to-[#36CFC9]/10 data-[active=true]:bg-gradient-to-r data-[active=true]:from-[#36CFC9] data-[active=true]:to-[#FFC857] data-[active=true]:text-[#0D1B2A] font-medium transition-all duration-300 rounded-lg mx-2 my-1 shadow-sm data-[active=true]:shadow-lg"
                   >
-                    <Link to={item.url}>
-                      <item.icon className="w-4 h-4" />
-                      <span>{item.title}</span>
+                    <Link to={item.url} className="flex items-center space-x-3">
+                      <item.icon className="w-5 h-5" />
+                      <span className="font-medium">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
