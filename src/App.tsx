@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 
 // Pages
 import LandingPage from "./pages/LandingPage";
+import Landing3DPage from "./pages/Landing3DPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
@@ -38,7 +39,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             {/* Public routes */}
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/" element={<Landing3DPage />} />
+            <Route path="/landing" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             
